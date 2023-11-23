@@ -1,4 +1,4 @@
-# Expense Table
+# Expenses Table
 
 - React
 - React-DOM
