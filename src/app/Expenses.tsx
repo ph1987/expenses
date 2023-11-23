@@ -70,7 +70,7 @@ export function Expenses() {
         <Box display="flex" flexDirection="column" width="60%" marginTop="2rem" marginLeft="auto" marginRight="auto">
           <Box display="flex" flexDirection="row" justifyContent="space-between">
             <Box>
-              <FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+              <FormControl variant="standard" sx={{ m: 1, minWidth: 60 }}>
                 <InputLabel id="age-label">Ano</InputLabel>
                 <Select
                   labelId="age-select-label"
