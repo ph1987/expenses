@@ -1,12 +1,9 @@
-# Projeto base do módulo React 2
+# Expense Table
 
-Este diretório contém a estrutura base para um projeto com:
+- React
+- React-DOM
+- React Hooks
+- Asynchronous requests
+- Material UI
 
-- React 17 (usando typescript)
-- React Router 5
-- Material UI 4
-
-Basta copiar essa pasta e renomeá-la conforme desejado. Adicionalmente, você
-pode renomear a propriedade `name` no arquivo `package.json`, mas isso é opcional.
-
-Em seguida, entre no diretório e instale as depedências com `npm install`, como de costume.
+## Módulo 3: React [Trabalho Prático] - PÓS IGTI/XPE
