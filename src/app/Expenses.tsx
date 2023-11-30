@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useParams, useHistory } from "react-router-dom";
-import { IExpense, getExpensesAPI } from "../service/expenses";
+import { IExpense, ISummary, getExpensesAPI } from "../service/expenses";
 import { useCallback, useEffect, useState } from "react";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -22,10 +22,14 @@ export function Expenses() {
   const { period } = useParams<{ period: string }>();
 
   const [ expensesState, setExpensesState ] = useState<IExpense[]>([]);
+  const [ summaryState, setSummaryState ] = useState<ISummary[]>([]);
   const [ totalExpense, setTotalExpense ] = useState('R$ 0,00');
   const [ year, setYear ] = useState('');
   const [ month, setMonth ] = useState('');
   const [ isLoading, setIsLoading ] = useState(true);
+  const [ error, setError ] = useState('');
+  const [ showDetails, setShowDetails ] = useState(true);
+  const [ showSummary, setShowSummary ] = useState(false);
 
   const handleYearChange = (event: SelectChangeEvent) => {
     const selectedYear = event.target.value;
@@ -53,16 +57,46 @@ export function Expenses() {
         const splittedPeriod = period.split('-');
         setYear(splittedPeriod[0]);
         setMonth(splittedPeriod[1]);
+
+        const summary = expenses.reduce((acc, expense) => {
+          const categoryIndex = acc.findIndex(
+            (item) => item.categoria === expense.categoria
+          );
+          if (categoryIndex === -1) {
+            acc.push({
+              id: expense.id,
+              categoria: expense.categoria,
+              valor: expense.valor,
+            });
+          } else {
+            acc[categoryIndex].valor += expense.valor;
+          }
+          return acc;
+        }, [] as ISummary[]);
+        setSummaryState(summary);
+
         setIsLoading(false);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      setError('Erro!');
+      setIsLoading(false);
     }
   }, [period]);
 
   useEffect(() => {
     getExpenses();
   }, [getExpenses]);
+
+  const handleShowSummary = () => {
+    setShowDetails(false);
+    setShowSummary(true);
+  }
+
+  const handleShowDetails = () => {
+    setShowDetails(true);
+    setShowSummary(false);
+  }
 
   return (
     <Box>
@@ -106,35 +140,71 @@ export function Expenses() {
             <p>Despesa total: <b>{totalExpense}</b></p>
           </Box>
           
+          <Box 
+            style={{ marginTop: '1rem', textAlign: 'center' }}
+          >
+            <span onClick={() => handleShowSummary()} style={{ cursor: 'pointer'}}>SUMMARY</span>
+            <span style={{ marginRight: '2rem' }}></span>
+            <span onClick={() => handleShowDetails()} style={{ cursor: 'pointer'}}>DETAILS</span>
+          </Box>
+
           <TableContainer component={Paper} sx={{ marginTop: 6, marginBottom: 6 }}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Despesa</TableCell>
-                  <TableCell align="left">Categoria</TableCell>
-                  <TableCell align="left">Dia</TableCell>
-                  <TableCell align="right">Valor (R$)</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {expensesState.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {row.descricao}
-                    </TableCell>
-                    <TableCell align="left">{row.categoria}</TableCell>
-                    <TableCell align="left">{row.dia}</TableCell>
-                    <TableCell align="right">
-                      {row.valor.toLocaleString('pt-br', {minimumFractionDigits: 2})}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+              {showDetails && (
+                <>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Despesa</TableCell>
+                      <TableCell align="left">Categoria</TableCell>
+                      <TableCell align="left">Dia</TableCell>
+                      <TableCell align="right">Valor (R$)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {expensesState.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell component="th" scope="row">
+                          {row.descricao}
+                        </TableCell>
+                        <TableCell align="left">{row.categoria}</TableCell>
+                        <TableCell align="left">{row.dia}</TableCell>
+                        <TableCell align="right">
+                          {row.valor.toLocaleString('pt-br', {minimumFractionDigits: 2})}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </>
+              )}
+              {showSummary && (
+                <>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell component="th" scope="row">Categoria</TableCell>
+                      <TableCell align="right">Valor (R$)</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {summaryState.map((row) => (
+                      <TableRow
+                      key={row.id}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell align="left">{row.categoria}</TableCell>
+                        <TableCell align="right">
+                          {row.valor.toLocaleString('pt-br', {minimumFractionDigits: 2})}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </>
+              )}
             </Table>
           </TableContainer>
+          {error ? (<p style={{ textAlign: 'center', color: 'red' }}>Erro de API</p>) : <></> }
         </Box>
       ) : (
         <Box sx={{ textAlign: 'center', marginTop: '10rem'  }}>
